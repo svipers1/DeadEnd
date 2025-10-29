@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>DeadEnd Roleplay | Login / Register</title>
+  <style>
+    :root {
+      --bg1:#0a0f1c;
+      --bg2:#101b2e;
+      --accent1:#ff4d6d;
+      --accent2:#21e6c1;
+      --glass:rgba(255,255,255,0.04);
+    }
+    * { box-sizing:border-box; }
+    html, body {
+      margin:0; height:100%;
+      font-family:"Poppins",sans-serif;
+      color:#e9f0ff;
+      background:linear-gradient(145deg,var(--bg1),var(--bg2));
+      display:flex;align-items:center;justify-content:center;
+      overflow:hidden;
+    }
+
+    /* Container */
+    .auth-container {
+      width:420px; max-width:95%;
+      padding:30px;
+      border-radius:20px;
+      background:var(--glass);
+      box-shadow:0 0 30px rgba(0,0,0,0.5);
+      backdrop-filter:blur(12px);
+      text-align:center;
+      animation:fadeIn 1s ease;
+    }
+
+    @keyframes fadeIn {from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:none;}}
+
+    h1 {
+      font-size:28px;
+      font-weight:800;
+      margin-bottom:10px;
+      background:linear-gradient(90deg,var(--accent1),var(--accent2));
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+    }
+    h2 {font-size:14px;font-weight:400;color:#ccc;margin-bottom:20px;}
+
+    input {
+      width:100%;padding:12px;margin:6px 0;
+      border:none;border-radius:10px;
+      background:rgba(255,255,255,0.05);
+      color:white;
+      outline:none;
+    }
+    button {
+      width:100%;padding:12px;
+      border:none;border-radius:10px;
+      margin-top:8px;
+      background:linear-gradient(90deg,var(--accent1),var(--accent2));
+      color:#0b0f18;font-weight:700;
+      cursor:pointer;transition:transform .2s;
+    }
+    button:hover {transform:scale(1.05);}
+
+    .switch {margin-top:14px;font-size:13px;opacity:.8;}
+    .switch span{color:var(--accent2);cursor:pointer;}
+
+    .msg {font-size:13px;margin-top:8px;min-height:18px;}
+    .msg.error{color:#ff9ba8;}
+    .msg.ok{color:#36ffca;}
+
+    /* 3D Loading Overlay */
+    .loading-overlay {
+      position:fixed;
+      inset:0;
+      background:radial-gradient(circle at center, rgba(18,26,41,0.9), #000);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      z-index:100;
+      visibility:hidden;
+      opacity:0;
+      transition:opacity .4s ease, visibility .4s ease;
+    }
+    .loading-overlay.active {
+      visibility:visible;
+      opacity:1;
+    }
+
+    .cube {
+      width:80px; height:80px;
+      transform-style:preserve-3d;
+      animation:spin 3s linear infinite;
+    }
+    .face {
+      position:absolute;
+      width:80px;height:80px;
+      background:linear-gradient(90deg,var(--accent1),var(--accent2));
+      opacity:.9;
+      border-radius:8px;
+    }
+    .face:nth-child(1){transform:rotateY(0deg) translateZ(40px);}
+    .face:nth-child(2){transform:rotateY(90deg) translateZ(40px);}
+    .face:nth-child(3){transform:rotateY(180deg) translateZ(40px);}
+    .face:nth-child(4){transform:rotateY(-90deg) translateZ(40px);}
+    .face:nth-child(5){transform:rotateX(90deg) translateZ(40px);}
+    .face:nth-child(6){transform:rotateX(-90deg) translateZ(40px);}
+
+    @keyframes spin {
+      0%{transform:rotateX(0) rotateY(0);}
+      100%{transform:rotateX(360deg) rotateY(360deg);}
+    }
+
+    .loading-text {
+      margin-top:30px;
+      font-size:18px;
+      color:#e9f0ff;
+      letter-spacing:1px;
+      animation:blink 1.2s infinite;
+    }
+
+    @keyframes blink {
+      0%,100%{opacity:1;}
+      50%{opacity:0.5;}
+    }
+  </style>
+</head>
+<body>
+
+<div class="auth-container" id="authBox">
+  <h1>DeadEnd Roleplay</h1>
+  <h2>Login to the City</h2>
+
+  <div id="loginBox">
+    <input type="text" id="loginUser" placeholder="Username">
+    <input type="password" id="loginPass" placeholder="Password">
+    <button id="loginBtn">Login</button>
+    <div class="msg" id="loginMsg"></div>
+    <div class="switch">Don't have an account? <span id="showReg">Register</span></div>
+  </div>
+
+  <div id="registerBox" style="display:none;">
+    <input type="text" id="regUser" placeholder="Create username">
+    <input type="password" id="regPass" placeholder="Create password">
+    <button id="regBtn">Register</button>
+    <div class="msg" id="regMsg"></div>
+    <div class="switch">Already have an account? <span id="showLog">Login</span></div>
+  </div>
+</div>
+
+<!-- 3D Loading Screen -->
+<div class="loading-overlay" id="loading">
+  <div class="cube">
+    <div class="face"></div><div class="face"></div>
+    <div class="face"></div><div class="face"></div>
+    <div class="face"></div><div class="face"></div>
+  </div>
+  <div class="loading-text">Entering DeadEnd City...</div>
+</div>
+
+<script>
+const loginBox = document.getElementById('loginBox');
+const registerBox = document.getElementById('registerBox');
+const showReg = document.getElementById('showReg');
+const showLog = document.getElementById('showLog');
+const loginBtn = document.getElementById('loginBtn');
+const regBtn = document.getElementById('regBtn');
+const loading = document.getElementById('loading');
+const loginMsg = document.getElementById('loginMsg');
+const regMsg = document.getElementById('regMsg');
+
+showReg.onclick = ()=>{loginBox.style.display='none';registerBox.style.display='block';loginMsg.textContent='';};
+showLog.onclick = ()=>{registerBox.style.display='none';loginBox.style.display='block';regMsg.textContent='';};
+
+// localStorage user DB
+const USERS_KEY='de_users_v2';
+
+function loadUsers(){
+  try{return JSON.parse(localStorage.getItem(USERS_KEY))||{}}catch{return{};}
+}
+function saveUsers(obj){
+  localStorage.setItem(USERS_KEY,JSON.stringify(obj));
+}
+
+async function sha256(text){
+  const enc=new TextEncoder().encode(text);
+  const hash=await crypto.subtle.digest("SHA-256",enc);
+  return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+
+// REGISTER
+regBtn.onclick=async()=>{
+  const u=regUser.value.trim();
+  const p=regPass.value.trim();
+  if(!u||!p){regMsg.textContent="Please fill all fields.";regMsg.className="msg error";return;}
+  if(p.length<6){regMsg.textContent="Password must be at least 6 chars.";regMsg.className="msg error";return;}
+  const users=loadUsers();
+  if(users[u.toLowerCase()]){regMsg.textContent="Username already exists.";regMsg.className="msg error";return;}
+  const h=await sha256(p);
+  users[u.toLowerCase()]={username:u,hash:h};
+  saveUsers(users);
+  regMsg.textContent="Registered successfully! You can now log in.";
+  regMsg.className="msg ok";
+  setTimeout(()=>{registerBox.style.display='none';loginBox.style.display='block';},1000);
+};
+
+// LOGIN
+loginBtn.onclick=async()=>{
+  const u=loginUser.value.trim();
+  const p=loginPass.value.trim();
+  if(!u||!p){loginMsg.textContent="Please fill all fields.";loginMsg.className="msg error";return;}
+  const users=loadUsers();
+  const record=users[u.toLowerCase()];
+  if(!record){loginMsg.textContent="Username not found.";loginMsg.className="msg error";return;}
+  const h=await sha256(p);
+  if(h!==record.hash){loginMsg.textContent="Wrong password.";loginMsg.className="msg error";return;}
+
+  // LOGIN SUCCESS
+  loginMsg.textContent="Login successful!";
+  loginMsg.className="msg ok";
+  // Show loading screen
+  setTimeout(()=>{
+    document.getElementById('authBox').style.display='none';
+    loading.classList.add('active');
+    setTimeout(()=>{window.location.href='dashboard.html';},5000);
+  },700);
+};
+</script>
+
+</body>
+</html>
