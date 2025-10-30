@@ -95,7 +95,7 @@
   <section class="status">
     <h2>Server Status</h2>
 
-    <!-- 🔥 New dynamic status card -->
+    <!-- 🔥 Server info card -->
     <div class="server-status-box">
       <h3>🖥️ DeadEnd RP Server</h3>
       <p><strong>IP:</strong> <span id="server-ip">15.235.181.136</span></p>
@@ -183,7 +183,7 @@
 
   <!-- 🔧 Server status check script -->
   <script>
-    const SERVER_IP = "15.235.181.136";  // change to your real IP
+    const SERVER_IP = "15.235.181.136";
     const SERVER_PORT = "12716";
 
     async function updateServerStatus() {
@@ -197,8 +197,7 @@
       portEl.textContent = SERVER_PORT;
 
       try {
-        // Public API for SA-MP (use yours if available)
-        const res = await fetch(`https://lemehost.com/server/view?id=3291838/${SERVER_IP}:${SERVER_PORT}`);
+        const res = await fetch(`https://api.open.mp/server/${SERVER_IP}:${SERVER_PORT}`);
         if (!res.ok) throw new Error("Offline");
         const data = await res.json();
 
